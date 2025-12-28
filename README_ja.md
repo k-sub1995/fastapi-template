@@ -1,79 +1,66 @@
-# バックエンドアーキテクチャサンプル (拡張公式テンプレート)
+# Backend Architecture Sample
 
-本プロジェクトは、**FastAPI 公式テンプレート** の構造をベースにしつつ、複雑なビジネスロジックに対応するために **Service Layer** を拡張した構成を採用しています（Clean Architecture / 3層アーキテクチャのアプローチ）。
+[FastAPI 公式テンプレート](https://github.com/fastapi/full-stack-fastapi-template) をベースにしたテンプレート。
 
-## 目次
+## Getting Started
 
-<!-- TOC -->
-- [バックエンドアーキテクチャサンプル (拡張公式テンプレート)](#バックエンドアーキテクチャサンプル-拡張公式テンプレート)
-  - [目次](#目次)
-  - [ディレクトリ構成](#ディレクトリ構成)
-  - [3層アーキテクチャとのマッピング](#3層アーキテクチャとのマッピング)
-  - [重要なコンセプト](#重要なコンセプト)
-    - [なぜ `services` と `crud` の両方が必要なのか？](#なぜ-services-と-crud-の両方が必要なのか)
-    - [データフロー](#データフロー)
+### 1. Clone the repository
 
-## ディレクトリ構成
+```bash
+git clone https://github.com/k-sub1995/fastapi-template.git
+cd fastapi-template
+```
+
+### 2. Run the application
+
+```bash
+docker compose up
+```
+
+## Usage
+
+コンテナ起動後、以下のエンドポイントへアクセス可能。
+
+- **API Server**: `http://localhost:8000`
+- **Health Check**: `http://localhost:8000/`
+
+## API Documentation
+
+ソースコードからAPIドキュメントが自動生成される。
+
+- **Swagger UI**: `http://localhost:8000/docs`
+- **ReDoc**: `http://localhost:8000/redoc`
+
+## Architecture
+
+[FastAPI 公式テンプレート](https://github.com/fastapi/full-stack-fastapi-template) をベースに**Clean Architecture** の思想を取り入れ、**Service Layer** を拡張している。
+
+### 3層アーキテクチャ
+
+1. **プレゼンテーション層** (`app/api`): HTTPリクエスト/レスポンスのハンドリング。ここにビジネスロジックは書かない。
+2. **ビジネスロジック層** (`app/services`): 複雑な業務ロジック、計算、外部連携を担当。
+3. **データアクセス層** (`app/crud`, `app/models`): データベース操作を担当。
+
+## Directory Strategy
+
+各ディレクトリの責務は以下の通り。開発時は適切な場所に配置すること。
+
+| ディレクトリ | 役割 | 説明 |
+| :--- | :--- | :--- |
+| `app/api/` | **Interface** | 入力検証、ルーティング。`services` または `crud` を呼び出す。 |
+| `app/services/` | **Logic** | 複雑なビジネスロジック（計算、ファイル解析など）。 |
+| `app/crud/` | **DB Actions** | クエリを実行する**関数群** (Create, Read, Update, Delete)。 |
+| `app/models/` | **DB Definitions** | データベースのテーブル構造を定義する**クラス群** (SQLAlchemy)。 |
+| `app/schemas/` | **DTO** | Pydanticモデル。リクエスト/レスポンスの型定義とバリデーション。 |
+| `app/core/` | **Config** | 環境設定、セキュリティ、共通定数。 |
 
 ```text
 app/
-├── api/             # [プレゼンテーション層] ルーター & エンドポイント
-│   └── v1/
-│       └── endpoints/
-├── services/        # [ビジネスロジック層] 複雑なロジック (Excel解析, AI連携)
-├── crud/            # [データアクセス層] データベース CRUD 操作
-├── models/          # [データアクセス層] データベースモデル (SQLAlchemy)
-├── schemas/         # [DTO] データ転送オブジェクト (Pydantic)
-├── core/            # 設定 & セキュリティ
-└── main.py          # アプリケーションエントリーポイント
+├── api/             # Presentation Layer
+├── core/            # Configuration
+├── crud/            # Data Access Layer
+├── models/          # Data Access Layer
+├── schemas/         # DTO
+├── services/        # Business Logic Layer
+└── main.py          # Entrypoint
 ```
-
-## 3層アーキテクチャとのマッピング
-
-これらのディレクトリを、標準的な **3層アーキテクチャ (関心の分離)** にマッピングします。
-
-| 層 (Layer) | ディレクトリ | 役割 |
-| :--- | :--- | :--- |
-| **1. プレゼンテーション  (Presentation)** | `api/` | **インターフェース**。HTTPリクエスト/レスポンスを処理します。  `schemas` を使用して入力を検証し、`services` または `crud` を呼び出します。  **ここにビジネスロジックは書きません。** |
-| **2. ビジネス / サービス  (Business / Service)** | `services/` | **ロジック**。"魔法" が起こる場所です。  Excel解析、AIプロンプト構築、統計計算などを行います。  必要に応じて `crud` 操作をオーケストレーション（組み合わせ）します。 |
-| **3. データアクセス  (Data Access)** | `crud/`  `models/` | **永続化**。データベースと直接やり取りします。  `models` はテーブル構造を定義し、`crud` はSQLクエリを実行します。 |
-
-## 重要なコンセプト
-
-### なぜ `services` と `crud` の両方が必要なのか？
-
-- **CRUD**: 単純なリソース管理（例：「ユーザー作成」「アイテム取得」）用です。公式テンプレートでは、ロジックが単純な場合はここに記述します。
-- **Service**: データベースのテーブルと 1:1 に対応しない操作や、保存 *前* に重要な処理が必要な場合（例：「履歴書Excelの解析」「AIフィードバック生成」）に使用します。
-
-### データフロー
-
-1. **リクエスト** が `api/` に到達します (`schemas` で検証)。
-2. `api/` は `services/` (複雑なタスク用) または `crud/` (単純なタスク用) を呼び出します。
-3. `services/` はデータを処理し、保存/取得のために `crud/` を呼び出します。
-4. `crud/` は `models/` を使用してデータベースにクエリを投げます。
-5. **レスポンス** が `schemas` (DTO) として返されます。
-
-## 実行方法 (How to Run)
-
-### 前提条件
-
-- Python 3.13+ ([uv](https://github.com/astral-sh/uv) がインストールされていること)
-- Docker
-
-### ローカル開発 (uv 使用)
-
-```bash
-# 依存関係のインストール
-uv sync
-
-# サーバー起動
-uv run uvicorn app.main:app --reload
-```
-
-### Docker
-
-```bash
-docker compose up --build
-```
-
-Swagger UI にアクセス: [http://localhost:8000/docs](http://localhost:8000/docs)
