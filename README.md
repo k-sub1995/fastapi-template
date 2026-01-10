@@ -31,6 +31,45 @@ API documentation is automatically generated from the source code.
 - **Swagger UI**: `http://localhost:8000/docs`
 - **ReDoc**: `http://localhost:8000/redoc`
 
+## Testing
+
+Run tests with pytest:
+
+```bash
+uv run pytest -v
+```
+
+Test structure:
+
+- `tests/api/`: API endpoint tests
+- `tests/services/`: Service layer tests
+- `tests/conftest.py`: Shared fixtures
+
+## Database Migration
+
+Template Alembic for database migrations.
+
+```bash
+# Create migration
+uv run alembic revision --autogenerate -m "description"
+
+# Apply migrations
+uv run alembic upgrade head
+
+# Rollback
+uv run alembic downgrade -1
+```
+
+## CI/CD
+
+GitHub Actions workflow (`.github/workflows/ci.yaml`) runs:
+
+- Ruff lint/format check
+- pytest
+- Slack notification on failure
+
+See `docs/slack-webhook-setup.md` for Slack configuration.
+
 ## Architecture
 
 Template based on the [Official FastAPI Template](https://github.com/fastapi/full-stack-fastapi-template), incorporating **Clean Architecture** principles and extending the **Service Layer**.
@@ -53,14 +92,21 @@ Roles for each directory are as follows. Place code in the appropriate location 
 | `app/models/` | **DB Definitions** | **Classes** defining the database table structure (SQLAlchemy). |
 | `app/schemas/` | **DTO** | Pydantic models. Request/response type definition and validation. |
 | `app/core/` | **Config** | Environment settings, security, common constants. |
+| `tests/` | **Testing** | pytest test files and fixtures. |
+| `alembic/` | **Migration** | Database migration scripts. |
+| `docs/` | **Documentation** | Additional documentation. |
 
 ```text
-app/
-├── api/             # Presentation Layer
-├── core/            # Configuration
-├── crud/            # Data Access Layer
-├── models/          # Data Access Layer
-├── schemas/         # DTO
-├── services/        # Business Logic Layer
-└── main.py          # Entrypoint
+.
+├── app/
+│   ├── api/             # Presentation Layer
+│   ├── core/            # Configuration
+│   ├── crud/            # Data Access Layer
+│   ├── models/          # Data Access Layer
+│   ├── schemas/         # DTO
+│   ├── services/        # Business Logic Layer
+│   └── main.py          # Entrypoint
+├── tests/               # Testing
+├── alembic/             # Database Migration
+└── docs/                # Documentation
 ```
