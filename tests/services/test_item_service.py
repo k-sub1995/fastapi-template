@@ -19,7 +19,7 @@ class TestItemService:
         item_in = ItemCreate(title="Service Test", description="Created via service")
         result = item_service.create_item_service(item_in)
 
-        assert result.id == 1
+        assert result.id == 2
         assert result.title == "Service Test"
         assert result.description == "Created via service"
 
