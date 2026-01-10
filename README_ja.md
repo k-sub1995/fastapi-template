@@ -31,6 +31,46 @@ docker compose up
 - **Swagger UI**: `http://localhost:8000/docs`
 - **ReDoc**: `http://localhost:8000/redoc`
 
+## Testing
+
+pytest でテストを実行:
+
+```bash
+uv run pytest -v
+```
+
+テスト構成:
+
+- `tests/api/`: API エンドポイントテスト
+- `tests/services/`: サービス層テスト
+- `tests/conftest.py`: 共通 fixtures
+
+## Database Migration
+
+Alembic を使用したデータベースマイグレーション。
+
+```bash
+# サンプルスクリプト
+# マイグレーション作成
+uv run alembic revision --autogenerate -m "description"
+
+# マイグレーション適用
+uv run alembic upgrade head
+
+# ロールバック
+uv run alembic downgrade -1
+```
+
+## CI/CD
+
+GitHub Actions ワークフロー (`.github/workflows/ci.yaml`) で以下を実行:
+
+- Ruff lint/format チェック
+- pytest
+- Slack 通知 (失敗時)
+
+Slack 設定は `docs/slack-webhook-setup.md` を参照。
+
 ## Architecture
 
 [FastAPI 公式テンプレート](https://github.com/fastapi/full-stack-fastapi-template) をベースに**Clean Architecture** の思想を取り入れ、**Service Layer** を拡張している。
@@ -53,14 +93,21 @@ docker compose up
 | `app/models/` | **DB Definitions** | データベースのテーブル構造を定義する**クラス群** (SQLAlchemy)。 |
 | `app/schemas/` | **DTO** | Pydanticモデル。リクエスト/レスポンスの型定義とバリデーション。 |
 | `app/core/` | **Config** | 環境設定、セキュリティ、共通定数。 |
+| `tests/` | **Testing** | pytest テストファイルと fixtures。 |
+| `alembic/` | **Migration** | データベースマイグレーションスクリプト。 |
+| `docs/` | **Documentation** | 追加ドキュメント。 |
 
 ```text
-app/
-├── api/             # Presentation Layer
-├── core/            # Configuration
-├── crud/            # Data Access Layer
-├── models/          # Data Access Layer
-├── schemas/         # DTO
-├── services/        # Business Logic Layer
-└── main.py          # Entrypoint
+.
+├── app/
+│   ├── api/             # プレゼンテーション層
+│   ├── core/            # 設定
+│   ├── crud/            # データアクセス層
+│   ├── models/          # データアクセス層
+│   ├── schemas/         # DTO
+│   ├── services/        # ビジネスロジック層
+│   └── main.py          # エントリーポイント
+├── tests/               # テスト
+├── alembic/             # DBマイグレーション
+└── docs/                # ドキュメント
 ```
